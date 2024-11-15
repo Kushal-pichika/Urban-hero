@@ -8,10 +8,10 @@
 
     <!-- Add Google Maps API Script with 'marker' library -->
     <script
-      src={`https://maps.googleapis.com/maps/api/js?key=AIzaSyB0mR_rM39f-PAZB_G6NcCimkapK9Iya70&libraries=places,directions,marker`}
-      async
-      defer
-    ></script>
+  src={`https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}&libraries=places,directions,marker`}
+  async
+  defer
+></script>
   </head>
   <body>
     <div id="root"></div>

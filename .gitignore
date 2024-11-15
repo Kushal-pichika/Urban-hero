@@ -7,3 +7,4 @@ build/         # Ignore the build directory
 .env           # Ignore environment configuration files
 .vscode/       # Ignore VSCode settings folder
 node_modules
+.env 
