@@ -8,3 +8,4 @@ build/         # Ignore the build directory
 .vscode/       # Ignore VSCode settings folder
 node_modules
 .env 
+/firebaseConfig.js

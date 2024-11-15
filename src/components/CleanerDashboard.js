@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { db } from '../firebaseConfig'; // Firebase Firestore import
+import { collection, getDocs, updateDoc, doc } from 'firebase/firestore'; // Firestore methods
 import MapDirections from './MapDirections'; // Import the new map component
 import '../assets/styles/dashboard.css';
 
@@ -11,12 +13,22 @@ const CleanerDashboard = () => {
   const navigate = useNavigate();
 
   // Google Maps API Key
-  const googleMapsApiKey = 'AIzaSyB0mR_rM39f-PAZB_G6NcCimkapK9Iya70';
+  const googleMapsApiKey = 'YOUR_GOOGLE_MAPS_API_KEY';
 
-  // Load tasks from localStorage on mount
+  // Load tasks from Firestore on mount
   useEffect(() => {
-    const storedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    setTasks(storedTasks);
+    const fetchTasks = async () => {
+      try {
+        const tasksCollection = collection(db, 'tasks');
+        const taskSnapshot = await getDocs(tasksCollection);
+        const taskList = taskSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+        setTasks(taskList);
+      } catch (error) {
+        console.error("Error fetching tasks from Firestore:", error);
+      }
+    };
+
+    fetchTasks();
   }, []);
 
   // Handle logout
@@ -43,18 +55,33 @@ const CleanerDashboard = () => {
   };
 
   // Handle Mark as Completed button
-  const handleCompleteTask = (taskId) => {
+  const handleCompleteTask = async (taskId) => {
     if (!photo) {
       alert('Please upload a photo as proof of completion.');
       return;
     }
 
-    const updatedTasks = tasks.map(task =>
-      task.id === taskId ? { ...task, status: 'Complete', completionImage: photo } : task
-    );
-    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
-    setTasks(updatedTasks);
-    setPhoto(null); // Reset the photo input
+    try {
+      // Find the task in the current list of tasks
+      const taskToUpdate = tasks.find(task => task.id === taskId);
+
+      // Update the task in Firestore
+      const taskDocRef = doc(db, 'tasks', taskId);
+      await updateDoc(taskDocRef, {
+        status: 'Complete',
+        completionImage: photo,
+      });
+
+      // Update the task status and completion image in the state
+      const updatedTasks = tasks.map(task =>
+        task.id === taskId ? { ...task, status: 'Complete', completionImage: photo } : task
+      );
+
+      setTasks(updatedTasks);
+      setPhoto(null); // Reset the photo input
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
   };
 
   // Separate tasks into assigned and completed
@@ -119,8 +146,8 @@ const CleanerDashboard = () => {
                       <img src={task.completionImage} alt="Completed Task" style={{ width: "200px", height: "200px" }} />
                     </div>
                   )}
-                  <hr/>
-                  <br/>
+                  <hr />
+                  <br />
                 </li>
               ))
             )}
