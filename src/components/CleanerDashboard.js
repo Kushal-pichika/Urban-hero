@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GoogleMap, LoadScript, Marker, DirectionsRenderer } from '@react-google-maps/api';
+import MapDirections from './MapDirections'; // Import the new map component
 import '../assets/styles/dashboard.css';
 
 const CleanerDashboard = () => {
   const [tasks, setTasks] = useState([]);
-  const [directions, setDirections] = useState(null);
   const [currentLocation, setCurrentLocation] = useState(null);
-  const [googleMaps, setGoogleMaps] = useState(null);
+  const [selectedTaskLocation, setSelectedTaskLocation] = useState(null); // State to hold selected task's location
   const navigate = useNavigate();
 
   // Google Maps API Key
-  const googleMapsApiKey = 'YOUR_GOOGLE_MAPS_API_KEY';
+  const googleMapsApiKey = 'AIzaSyB0mR_rM39f-PAZB_G6NcCimkapK9Iya70';
 
   // Load tasks from localStorage on mount
   useEffect(() => {
@@ -23,15 +22,6 @@ const CleanerDashboard = () => {
   const logout = () => {
     localStorage.removeItem('userId');
     navigate('/login');
-  };
-
-  // Mark task as completed
-  const markTaskCompleted = (taskId) => {
-    const updatedTasks = tasks.map(task =>
-      task.id === taskId ? { ...task, status: 'Completed' } : task
-    );
-    localStorage.setItem('tasks', JSON.stringify(updatedTasks)); // Save to localStorage
-    setTasks(updatedTasks); // Update state
   };
 
   // Get current location of the cleaner
@@ -46,30 +36,24 @@ const CleanerDashboard = () => {
     }
   }, []);
 
-  // Set the Google Maps instance when it loads
-  const onLoad = (map) => {
-    setGoogleMaps(map);
+  // Handle Get Directions button click
+  const handleGetDirections = (taskLocation) => {
+    setSelectedTaskLocation(taskLocation);
   };
 
-  // Function to get directions to the task location
-  const getDirections = (taskLocation) => {
-    if (currentLocation && googleMaps) {
-      const DirectionsService = new window.google.maps.DirectionsService();
+  // Handle Mark as Completed button click
+  const handleMarkAsCompleted = (taskId) => {
+    // Update the task status to 'Completed'
+    const updatedTasks = tasks.map(task => {
+      if (task.id === taskId) {
+        return { ...task, status: 'Completed' };
+      }
+      return task;
+    });
 
-      const request = {
-        origin: new window.google.maps.LatLng(currentLocation.lat, currentLocation.lng),
-        destination: new window.google.maps.LatLng(taskLocation.latitude, taskLocation.longitude),
-        travelMode: window.google.maps.TravelMode.DRIVING
-      };
-
-      DirectionsService.route(request, (result, status) => {
-        if (status === window.google.maps.DirectionsStatus.OK) {
-          setDirections(result);
-        } else {
-          console.error('Error fetching directions:', status);
-        }
-      });
-    }
+    // Update state and save to localStorage
+    setTasks(updatedTasks);
+    localStorage.setItem('tasks', JSON.stringify(updatedTasks)); // Persist the updated tasks list
   };
 
   return (
@@ -86,14 +70,14 @@ const CleanerDashboard = () => {
             {tasks.length === 0 ? (
               <p>No tasks assigned yet.</p>
             ) : (
-              tasks.map((task) => (
-                task.status === "Assigned" && task.assignedTo && (
+              tasks.filter(task => task.status === "Assigned").map((task) => (
+                task.assignedTo && (
                   <li key={task.id}>
                     <img src={task.url} alt="Task" style={{ width: "200px", height: "200px" }} />
                     <p>Status: {task.status}</p>
                     <p>Location: {task.location ? `Lat: ${task.location.latitude}, Lon: ${task.location.longitude}` : "Location not available"}</p>
-                    <button onClick={() => markTaskCompleted(task.id)}>Mark as Completed</button>
-                    <button onClick={() => getDirections(task.location)}>Get Directions</button>
+                    <button onClick={() => handleMarkAsCompleted(task.id)}>Mark as Completed</button> {/* Mark as Completed button */}
+                    <button onClick={() => handleGetDirections(task.location)}>Get Directions</button> {/* Get Directions button */}
                   </li>
                 )
               ))
@@ -101,23 +85,28 @@ const CleanerDashboard = () => {
           </ul>
         </div>
 
-        {currentLocation && directions && (
-          <div className="map-container">
-            <LoadScript
-              googleMapsApiKey={googleMapsApiKey}
-              onLoad={onLoad}
-            >
-              <GoogleMap
-                id="directions-map"
-                mapContainerStyle={{ width: '100%', height: '400px' }}
-                center={{ lat: currentLocation.lat, lng: currentLocation.lng }}
-                zoom={14}
-              >
-                <Marker position={currentLocation} />
-                <DirectionsRenderer directions={directions} />
-              </GoogleMap>
-            </LoadScript>
-          </div>
+        <div className="card">
+          <h3>Completed Tasks</h3>
+          <ul>
+            {tasks.filter(task => task.status === "Completed").map((task) => (
+              task.assignedTo && (
+                <li key={task.id}>
+                  <img src={task.url} alt="Task" style={{ width: "200px", height: "200px" }} />
+                  <p>Status: {task.status}</p>
+                  <p>Location: {task.location ? `Lat: ${task.location.latitude}, Lon: ${task.location.longitude}` : "Location not available"}</p>
+                </li>
+              )
+            ))}
+          </ul>
+        </div>
+
+        {/* Render MapDirections component only when a task is selected */}
+        {selectedTaskLocation && currentLocation && (
+          <MapDirections 
+            currentLocation={currentLocation}
+            taskLocation={selectedTaskLocation} // Use the selected task's location here
+            googleMapsApiKey={googleMapsApiKey}
+          />
         )}
       </div>
     </div>

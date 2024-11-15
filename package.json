@@ -14,6 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@react-google-maps/api": "^2.20.3",
+    "font-awesome": "^4.7.0",
     "react-router-dom": "^6.28.0",
     "react-scripts": "^5.0.1",
     "react-toastify": "^10.0.6"
