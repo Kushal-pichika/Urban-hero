@@ -10,7 +10,7 @@ const CleanerDashboard = () => {
   const navigate = useNavigate();
 
   // Google Maps API Key
-  const googleMapsApiKey = 'process.env.REACT_APP_GOOGLE_MAPS_API_KEY'
+  const googleMapsApiKey = 'AIzaSyB0mR_rM39f-PAZB_G6NcCimkapK9Iya70'
 
   // Load tasks from localStorage on mount
   useEffect(() => {
