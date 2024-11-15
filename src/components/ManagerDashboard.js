@@ -3,93 +3,96 @@ import { useNavigate } from 'react-router-dom';
 import '../assets/styles/dashboard.css';
 
 const ManagerDashboard = () => {
-  const [uploadedImages, setUploadedImages] = useState([]);
-  const [assignedTasks, setAssignedTasks] = useState([]);
-  const [selectedTask, setSelectedTask] = useState('');
+  const [tasks, setTasks] = useState([]);
+  const [cleaners, setCleaners] = useState([]);
+  const [selectedCleaner, setSelectedCleaner] = useState('');
   const navigate = useNavigate();
 
-  const fetchUploadedImages = () => {
-    const uploadedImages = JSON.parse(localStorage.getItem('uploadedImages')) || [];
-    setUploadedImages(uploadedImages);
-  };
+  useEffect(() => {
+    const storedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    setTasks(storedTasks);
 
-  const fetchAssignedTasks = () => {
-    const tasks = JSON.parse(localStorage.getItem('assignedTasks')) || [];
-    setAssignedTasks(tasks);
-  };
+    const storedCleaners = JSON.parse(localStorage.getItem('cleaners')) || [];
+    if (storedCleaners.length === 0) {
+      const defaultCleaners = [
+        { id: "cleaner1", name: "Cleaner 1" },
+        { id: "cleaner2", name: "Cleaner 2" },
+        { id: "cleaner3", name: "Cleaner 3" }
+      ];
+      localStorage.setItem('cleaners', JSON.stringify(defaultCleaners));
+      setCleaners(defaultCleaners);
+    } else {
+      setCleaners(storedCleaners);
+    }
+  }, []);
 
-  const assignTask = (imageId) => {
-    if (!selectedTask) {
-      alert('Please select a cleaner');
+  const assignTask = (taskId) => {
+    if (!selectedCleaner) {
+      alert("Please select a cleaner to assign the task.");
       return;
     }
 
-    const task = assignedTasks.find((task) => task.imageId === imageId);
+    const updatedTasks = tasks.map((task) => {
+      if (task.id === taskId) {
+        task.status = "Assigned";
+        task.assignedTo = selectedCleaner;
+      }
+      return task;
+    });
 
-    if (task && task.cleanerId) {
-      alert('This task has already been assigned.');
-      return;
-    }
-
-    const taskData = { imageId, cleanerId: selectedTask, status: 'Assigned' };
-    const updatedTasks = [...assignedTasks, taskData];
-    localStorage.setItem('assignedTasks', JSON.stringify(updatedTasks));
-    setAssignedTasks(updatedTasks);
-    alert('Task assigned successfully');
+    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+    setTasks(updatedTasks);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('role');
+  const logout = () => {
+    localStorage.removeItem('managerId');
     navigate('/login');
   };
-
-  useEffect(() => {
-    fetchUploadedImages();
-    fetchAssignedTasks();
-  }, []);
 
   return (
     <div className="dashboard-content">
       <div className="dashboard-header">
         <h2>Manager Dashboard</h2>
-        <button className="logout-button" onClick={handleLogout}>Logout</button>
+        <button onClick={logout} className="logout-button">Logout</button>
       </div>
 
       <div className="dashboard-cards">
         <div className="card">
-          <h3>Uploaded Waste Images</h3>
+          <h3>Task Assignments</h3>
           <ul>
-            {uploadedImages.length > 0 ? (
-              uploadedImages.map((image, index) => {
-                const assignedTask = assignedTasks.find((task) => task.imageId === index + 1);
-                const isAssigned = assignedTask && assignedTask.cleanerId;
-
-                return (
-                  <li key={index}>
-                    <img src={image.url} alt={`Uploaded ${index + 1}`} />
-                    <p>Status: {isAssigned ? 'Assigned' : 'Pending'}</p>
-                    <button
-                      onClick={() => assignTask(index + 1)}
-                      disabled={isAssigned}
-                    >
-                      {isAssigned ? 'Task Assigned' : 'Assign Task'}
-                    </button>
-                  </li>
-                );
-              })
+            {tasks.length === 0 ? (
+              <p>No tasks available.</p>
             ) : (
-              <p>No images uploaded by users yet.</p>
+              tasks.map((task) => (
+                <li key={task.id}>
+                  <img src={task.url} alt="Task" style={{ width: "200px", height: "200px" }} />
+                  <p>Status: {task.status}</p>
+                  {task.status === "Pending" && (
+                    <div>
+                      <label>Select Cleaner:</label>
+                      <select
+                        onChange={(e) => setSelectedCleaner(e.target.value)}
+                        value={selectedCleaner}
+                      >
+                        <option value="">--Select Cleaner--</option>
+                        {cleaners.map((cleaner) => (
+                          <option key={cleaner.id} value={cleaner.id}>
+                            {cleaner.name}
+                          </option>
+                        ))}
+                      </select>
+                      <button onClick={() => assignTask(task.id)}>
+                        Assign to Cleaner
+                      </button>
+                    </div>
+                  )}
+                  {task.status === "Assigned" && task.assignedTo && (
+                    <p>Assigned to: {cleaners.find(c => c.id === task.assignedTo)?.name}</p>
+                  )}
+                </li>
+              ))
             )}
           </ul>
-        </div>
-
-        <div className="card">
-          <h3>Assign Task</h3>
-          <select onChange={(e) => setSelectedTask(e.target.value)} value={selectedTask}>
-            <option value="">Select Cleaner</option>
-            <option value="1">Cleaner 1</option>
-            <option value="2">Cleaner 2</option>
-          </select>
         </div>
       </div>
     </div>

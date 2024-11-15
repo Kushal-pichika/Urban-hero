@@ -1,76 +1,93 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';  // For handling routing
 import '../assets/styles/dashboard.css';
 
 const UserDashboard = () => {
-  const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [uploadedImages, setUploadedImages] = useState([]);
-  const navigate = useNavigate();
+  const [tasks, setTasks] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null); // State for the selected image
+  const navigate = useNavigate(); // For navigation
+  const userId = localStorage.getItem('userId');  // Ensure you're getting the user ID from localStorage
 
-  const handleImageChange = (event) => {
-    const file = event.target.files[0];
-    setImage(file);
-    setImagePreview(URL.createObjectURL(file));
+  // Load tasks from localStorage on mount
+  useEffect(() => {
+    const storedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    setTasks(storedTasks);
+  }, []);
+
+  // Handle image upload
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result); // Store the uploaded image as a URL
+      };
+      reader.readAsDataURL(file); // Convert the image file to a data URL
+    }
   };
 
-  const handleUpload = () => {
-    if (!image) {
-      alert("Please select an image to upload");
+  // Function to upload image (add task)
+  const uploadImage = () => {
+    if (!selectedImage) {
+      alert("Please upload an image.");
       return;
     }
 
-    const newImage = {
-      url: imagePreview,
-      status: 'Pending',
+    const newTask = {
+      id: Date.now(), // Unique ID for the task
+      url: selectedImage, // The image URL
+      status: "Pending", // Initial status as Pending
+      assignedTo: null, // No worker assigned yet
     };
 
-    const uploadedImages = JSON.parse(localStorage.getItem('uploadedImages')) || [];
-    uploadedImages.push(newImage);
-    localStorage.setItem('uploadedImages', JSON.stringify(uploadedImages));
-
-    setUploadedImages(uploadedImages);
-    setImage(null);
-    setImagePreview(null);
+    const updatedTasks = [...tasks, newTask];
+    localStorage.setItem('tasks', JSON.stringify(updatedTasks)); // Save to localStorage
+    setTasks(updatedTasks); // Update state
+    setSelectedImage(null); // Clear selected image
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('role');
-    navigate('/login');
+  // Handle logout
+  const logout = () => {
+    localStorage.removeItem('userId');  // Remove user ID on logout
+    navigate('/login');  // Redirect to the login page using navigate
   };
-
-  useEffect(() => {
-    const uploadedImages = JSON.parse(localStorage.getItem('uploadedImages')) || [];
-    setUploadedImages(uploadedImages);
-  }, []);
 
   return (
     <div className="dashboard-content">
       <div className="dashboard-header">
-        <h2>User Dashboard</h2>
-        <button className="logout-button" onClick={handleLogout}>Logout</button>
+        <h2>User (Citizen) Dashboard</h2>
+        <button onClick={logout} className="logout-button">Logout</button> {/* Logout Button */}
       </div>
 
       <div className="dashboard-cards">
         <div className="card">
-          <h3>Report Waste</h3>
-          <input type="file" onChange={handleImageChange} />
-          {imagePreview && <img src={imagePreview} alt="Preview" />}
-          <button onClick={handleUpload}>Upload Image</button>
+          <h3>Upload Waste Image</h3>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+          />
+          {selectedImage && (
+            <div className="image-preview">
+              <img src={selectedImage} alt="Preview" style={{ width: "200px", height: "200px" }} />
+            </div>
+          )}
+          <button onClick={uploadImage}>Upload Image</button>
         </div>
 
         <div className="card">
-          <h3>Your Uploaded Tasks</h3>
+          <h3>Your Tasks</h3>
           <ul>
-            {uploadedImages.length > 0 ? (
-              uploadedImages.map((uploadedImage, index) => (
-                <li key={index}>
-                  <img src={uploadedImage.url} alt={`Uploaded ${index + 1}`} />
-                  <p>{uploadedImage.status}</p>
+            {tasks.length === 0 ? (
+              <p>No tasks assigned yet.</p>
+            ) : (
+              tasks.map((task) => (
+                <li key={task.id}>
+                  <img src={task.url} alt="Task" style={{ width: "200px", height: "200px" }} />
+                  <p>Status: {task.status}</p>
+                  {/* Display task status but do not allow user to mark it as complete */}
                 </li>
               ))
-            ) : (
-              <p>No uploaded tasks yet.</p>
             )}
           </ul>
         </div>

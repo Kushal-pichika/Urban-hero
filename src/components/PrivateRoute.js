@@ -4,11 +4,11 @@ import { Route, Navigate } from 'react-router-dom';
 const PrivateRoute = ({ element, role }) => {
   const userRole = localStorage.getItem('role');
 
-  if (userRole === role) {
-    return element;
+  if (userRole !== role) {
+    return <Navigate to="/login" />;
   }
 
-  return <Navigate to="/login" />;
+  return element;
 };
 
 export default PrivateRoute;
