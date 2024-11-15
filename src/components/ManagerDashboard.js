@@ -64,6 +64,14 @@ const ManagerDashboard = () => {
                   {task.assignedTo && task.status === "Assigned" && (
                     <p>Assigned to: {cleaners.find(c => c.id === task.assignedTo)?.name}</p>
                   )}
+                  {task.status === "Complete" && task.completionImage && (
+                    <div>
+                      <h4>Completed Task</h4>
+                      <img src={task.completionImage} alt="Completed Task" style={{ width: "200px", height: "200px" }} />
+                    </div>
+                  )}
+                  <hr/>
+                  <br/>
                 </li>
               ))
             )}

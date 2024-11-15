@@ -1,5 +1,3 @@
-// UserDashboard.js
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../assets/styles/dashboard.css';
@@ -7,9 +5,9 @@ import '../assets/styles/dashboard.css';
 const UserDashboard = () => {
   const [tasks, setTasks] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [location, setLocation] = useState(null);  // Store location here
+  const [location, setLocation] = useState(null);
   const navigate = useNavigate();
-  const userId = localStorage.getItem('userId');  // Ensure you're getting the user ID from localStorage
+  const userId = localStorage.getItem('userId');
 
   // Load tasks from localStorage on mount
   useEffect(() => {
@@ -34,14 +32,14 @@ const UserDashboard = () => {
     }
   };
 
-  // Handle image upload
+  // Handle image upload for new tasks
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setSelectedImage(reader.result);
-        getLocation(); // Get location when image is uploaded
+        getLocation();
       };
       reader.readAsDataURL(file);
     }
@@ -55,18 +53,19 @@ const UserDashboard = () => {
     }
 
     const newTask = {
-      id: Date.now(),  // Unique ID for the task
-      url: selectedImage,  // The image URL
+      id: Date.now(),
+      url: selectedImage,
       status: "Pending",  // Initial status as Pending
-      assignedTo: null,  // No worker assigned yet
-      location: location, // Add location data here
+      assignedTo: null,
+      location: location,
+      completionImage: null,  // No image uploaded by cleaner initially
     };
 
     const updatedTasks = [...tasks, newTask];
-    localStorage.setItem('tasks', JSON.stringify(updatedTasks));  // Save to localStorage
-    setTasks(updatedTasks);  // Update state
-    setSelectedImage(null);  // Clear selected image
-    setLocation(null);  // Clear location
+    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+    setTasks(updatedTasks);
+    setSelectedImage(null);
+    setLocation(null);
   };
 
   // Handle logout
@@ -109,7 +108,15 @@ const UserDashboard = () => {
                   <img src={task.url} alt="Task" style={{ width: "200px", height: "200px" }} />
                   <p>Status: {task.status}</p>
                   <p>Location: {task.location ? `Lat: ${task.location.latitude}, Lon: ${task.location.longitude}` : "Location not available"}</p>
-                  {/* Display task status but do not allow user to mark it as complete */}
+                  {/* Display cleaner’s completion image if status is "Complete" */}
+                  {task.status === "Complete" && task.completionImage && (
+                    <div>
+                      <h4>Task Completed!</h4>
+                      <img src={task.completionImage} alt="Completed Task" style={{ width: "200px", height: "200px" }} />
+                    </div>
+                  )}
+                  <hr/>
+                  <br/>
                 </li>
               ))
             )}
