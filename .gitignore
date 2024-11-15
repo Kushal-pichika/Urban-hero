@@ -1,0 +1,9 @@
+
+*.log       # Ignore all .log files
+*.tmp       # Ignore all .tmp files
+*.DS_Store  # Ignore macOS specific files
+node_modules/  # Ignore the node_modules directory
+build/         # Ignore the build directory
+.env           # Ignore environment configuration files
+.vscode/       # Ignore VSCode settings folder
+node_modules
