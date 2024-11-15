@@ -11,7 +11,11 @@ const ManagerDashboard = () => {
   // Fetch uploaded images from localStorage
   const fetchUploadedImages = () => {
     const uploadedImages = JSON.parse(localStorage.getItem('uploadedImages')) || [];
-    setUploadedImages(uploadedImages);
+    const updatedImages = uploadedImages.map((image, index) => ({
+      ...image,
+      id: index + 1,  // Ensure each image has a unique ID
+    }));
+    setUploadedImages(updatedImages);
   };
 
   // Fetch assigned tasks (simulated for now)
@@ -70,17 +74,17 @@ const ManagerDashboard = () => {
           <h3>Uploaded Waste Images</h3>
           <ul>
             {uploadedImages.length > 0 ? (
-              uploadedImages.map((image, index) => {
+              uploadedImages.map((image) => {
                 // Check if the image task is already assigned
-                const assignedTask = assignedTasks.find((task) => task.imageId === index + 1);
+                const assignedTask = assignedTasks.find((task) => task.imageId === image.id);
                 const isAssigned = assignedTask && assignedTask.cleanerId;
 
                 return (
-                  <li key={index}>
-                    <img src={image.url} alt={`Uploaded ${index + 1}`} />
-                    <p>Status: {isAssigned ? 'Assigned' : 'Pending'}</p>
+                  <li key={image.id}>
+                    <img src={image.url} alt={`Uploaded ${image.id}`} />
+                    <p>Status: {isAssigned ? `Assigned to Cleaner ${assignedTask.cleanerId}` : 'Pending'}</p>
                     <button
-                      onClick={() => assignTask(index + 1)}
+                      onClick={() => assignTask(image.id)}
                       disabled={isAssigned} // Disable button if the task is assigned
                     >
                       {isAssigned ? 'Task Assigned' : 'Assign Task'}
