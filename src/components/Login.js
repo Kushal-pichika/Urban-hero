@@ -6,13 +6,14 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(''); // For error message
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
   const handleLogin = (event) => {
     event.preventDefault();
-    setErrorMessage(''); // Reset error message on each login attempt
+    setErrorMessage('');
 
+    // Sample users for testing. You should replace this with an actual authentication system.
     if (email === 'user@example.com' && password === 'user123') {
       localStorage.setItem('role', 'user');
       navigate('/user-dashboard');
@@ -21,10 +22,10 @@ const Login = () => {
       navigate('/manager-dashboard');
     } else if (email === 'cleaner@example.com' && password === 'cleaner123') {
       localStorage.setItem('role', 'cleaner');
+      localStorage.setItem('cleanerId', '1'); // Store cleaner's ID here
       navigate('/cleaner-dashboard');
     } else {
       setErrorMessage('Invalid credentials. Please check your email and password.');
-      return;
     }
   };
 
@@ -60,7 +61,7 @@ const Login = () => {
           <label htmlFor="show-password">Show Password</label>
         </div>
         <button type="submit">Login</button>
-        {errorMessage && <p className="error-message">{errorMessage}</p>} {/* Error message display */}
+        {errorMessage && <p className="error-message">{errorMessage}</p>}
       </form>
     </div>
   );

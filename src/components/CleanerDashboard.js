@@ -10,18 +10,29 @@ const CleanerDashboard = () => {
   // Fetch tasks assigned to the cleaner
   const fetchAssignedTasks = () => {
     const tasks = JSON.parse(localStorage.getItem('assignedTasks')) || [];
-    const cleanerTasks = tasks.filter(task => task.cleanerId === currentCleanerId); // Filter tasks assigned to current cleaner
+    // Filter only tasks assigned to the current cleaner
+    const cleanerTasks = tasks.filter(task => task.cleanerId === currentCleanerId);
     setAssignedTasks(cleanerTasks);
   };
 
   // Update task status after cleaning
   const updateTaskStatus = (taskId, status) => {
     const tasks = JSON.parse(localStorage.getItem('assignedTasks')) || [];
-    const updatedTasks = tasks.map(task =>
-      task.id === taskId ? { ...task, status } : task
-    );
+
+    // Check if task status needs to be updated
+    const updatedTasks = tasks.map(task => {
+      if (task.id === taskId && task.status !== 'Completed') {
+        return { ...task, status };  // Only update if status isn't already 'Completed'
+      }
+      return task;
+    });
+
+    // Store the updated tasks back in localStorage
     localStorage.setItem('assignedTasks', JSON.stringify(updatedTasks));
+
+    // Update state to reflect the changes
     setAssignedTasks(updatedTasks); // Update tasks in state
+
     alert('Task status updated');
   };
 

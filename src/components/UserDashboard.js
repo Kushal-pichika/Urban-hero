@@ -8,14 +8,12 @@ const UserDashboard = () => {
   const [uploadedImages, setUploadedImages] = useState([]);
   const navigate = useNavigate();
 
-  // Handle image selection and preview
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     setImage(file);
-    setImagePreview(URL.createObjectURL(file)); // Preview the selected image
+    setImagePreview(URL.createObjectURL(file));
   };
 
-  // Handle image upload and store in local storage
   const handleUpload = () => {
     if (!image) {
       alert("Please select an image to upload");
@@ -24,30 +22,24 @@ const UserDashboard = () => {
 
     const newImage = {
       url: imagePreview,
-      status: 'Pending', // You can adjust the status as needed
+      status: 'Pending',
     };
 
-    // Store the uploaded images in localStorage
     const uploadedImages = JSON.parse(localStorage.getItem('uploadedImages')) || [];
     uploadedImages.push(newImage);
     localStorage.setItem('uploadedImages', JSON.stringify(uploadedImages));
 
-    // Update the state
     setUploadedImages(uploadedImages);
-
-    // Reset image state after upload
     setImage(null);
     setImagePreview(null);
   };
 
-  // Handle logout
   const handleLogout = () => {
-    localStorage.removeItem('role'); // Clear the role from localStorage
-    navigate('/login'); // Redirect to login page
+    localStorage.removeItem('role');
+    navigate('/login');
   };
 
   useEffect(() => {
-    // Fetch uploaded images from localStorage on load
     const uploadedImages = JSON.parse(localStorage.getItem('uploadedImages')) || [];
     setUploadedImages(uploadedImages);
   }, []);
